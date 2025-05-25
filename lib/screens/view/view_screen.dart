@@ -2,10 +2,12 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:visionary_walls/models/info_model.dart';
 import 'package:visionary_walls/screens/view/widgets/small_image_container.dart';
 
@@ -28,13 +30,15 @@ class _ViewScreenState extends State<ViewScreen> {
   bool _isLoading = false;
   bool _isLoaded = false;
   Future<void> _downloadImageToGallery(String imageUrl) async {
-    // Request permissions
-    // final status = await Permission.photos.request(); // iOS
-    // final storage = await Permission.storage.request(); // Android
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
-    // if (!status.isGranted && !storage.isGranted) {
-    //   throw Exception("Permission denied");
-    // }
+    if (androidInfo.version.sdkInt < 33) {
+      final storage = await Permission.storage.request();
+      if (!storage.isGranted) {
+        throw Exception("Permission denied");
+      }
+    }
 
     try {
       // Download image data
